@@ -89,9 +89,13 @@ def match_entities(
                 continue
             e_new = new[int(j)]
             compat = compatibility(e_old, e_new)
-            min_compat = (
-                settings.text_match_ratio if e_old.kind == EntityKind.TEXT else 0.5
-            )
+            if e_old.kind == EntityKind.TEXT:
+                # an annotation at (nearly) the same position is the same
+                # slot even when its value changed (e.g. "R10" -> "R15"),
+                # so proximity relaxes the required text similarity
+                min_compat = 0.2 if dist <= settings.moved_tol else settings.text_match_ratio
+            else:
+                min_compat = 0.5
             if compat < min_compat:
                 continue
             # lower cost = closer and more similar
