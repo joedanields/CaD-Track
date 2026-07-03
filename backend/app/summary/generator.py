@@ -85,4 +85,6 @@ def generate_summary(diff: DiffResult, stats: StatsSummary) -> str:
             "pure geometry changes are not evaluated for raster inputs."
         )
 
+    parts += [n for n in diff.notes if n.startswith("Warning:")]
+
     return " ".join(parts)

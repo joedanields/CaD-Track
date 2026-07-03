@@ -65,6 +65,19 @@ def run_comparison(job_id: str, path_a: Path, path_b: Path) -> CompareResult:
         entities_a = _extract_entities(page_a, type_a, text_only)
         entities_b = _extract_entities(page_b, type_b, text_only)
 
+        if text_only:
+            counts = {"A": len(entities_a), "B": len(entities_b)}
+            low, high = min(counts.values()), max(counts.values())
+            if high > 0 and low < 0.2 * high:
+                sparse = min(counts, key=counts.get)
+                notes.append(
+                    f"Warning: input {sparse} yielded very few readable text "
+                    f"elements ({low} vs {high}) — likely a low-resolution scan. "
+                    "Change results are unreliable; most elements will appear "
+                    "as added/removed. Provide a higher-resolution scan or a "
+                    "native vector PDF for a meaningful comparison."
+                )
+
         pairs = match_entities(entities_a, entities_b)
         regions = classify_matches(pairs)
 
