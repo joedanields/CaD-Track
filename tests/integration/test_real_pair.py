@@ -12,7 +12,7 @@ def test_real_pair_completes():
     )
     assert result.diff.path_a == "vector"
     assert result.diff.path_b == "raster"
-    assert result.diff.compare_mode == "text-only"
+    assert result.diff.compare_mode == "approx-geometry+text"
     assert result.summary
     # the v2 scan is too low-resolution for reliable OCR; the pipeline must
     # say so instead of pretending the comparison is trustworthy

@@ -38,10 +38,10 @@ def _describe(stat: RegionStat) -> str:
 def generate_summary(diff: DiffResult, stats: StatsSummary) -> str:
     if stats.total_regions == 0:
         base = "No significant differences were detected between the two drawings."
-        if diff.compare_mode == "text-only":
+        if diff.compare_mode == "approx-geometry+text":
             base += (
-                " Note: at least one input contained no vector data, so only "
-                "text and annotation changes could be evaluated."
+                " Note: at least one input is a raster scan, so geometry was "
+                "compared approximately from traced drawing lines and text via OCR."
             )
         return base
 
@@ -78,11 +78,12 @@ def generate_summary(diff: DiffResult, stats: StatsSummary) -> str:
         f"{stats.total_changed_area_fraction * 100:.1f}% of the total drawing area."
     )
 
-    if diff.compare_mode == "text-only":
+    if diff.compare_mode == "approx-geometry+text":
         parts.append(
-            "Note: at least one input contained no vector data, so this "
-            "comparison covers text and annotations only (detected via OCR); "
-            "pure geometry changes are not evaluated for raster inputs."
+            "Note: at least one input is a raster scan, so geometry changes "
+            "were detected approximately by tracing drawing lines on both "
+            "pages, and text was compared via OCR; small changes may be "
+            "missed and positions are approximate."
         )
 
     parts += [n for n in diff.notes if n.startswith("Warning:")]

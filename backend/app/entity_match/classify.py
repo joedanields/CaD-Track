@@ -52,12 +52,16 @@ def classify_matches(pairs: list[MatchPair]) -> list[Region]:
         old, new = pair.old, pair.new
         assert old is not None and new is not None
         conf = min(old.confidence, new.confidence)
+        # traced/OCR entities carry jitter: require larger displacement and a
+        # bigger similarity drop before flagging a change
+        exact = conf >= 1.0
 
-        moved = pair.distance > settings.moved_tol
+        moved = pair.distance > (settings.moved_tol if exact else settings.approx_moved_tol)
         if old.kind == EntityKind.TEXT:
             content_changed = (old.text or "") != (new.text or "")
         else:
-            content_changed = compatibility(old, new) < 0.98
+            threshold = 0.98 if exact else settings.approx_modified_compat
+            content_changed = compatibility(old, new) < threshold
 
         if content_changed:
             detail = (
