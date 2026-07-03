@@ -65,7 +65,7 @@ class DiffResult(BaseModel):
     path_a: Literal["vector", "raster"]
     path_b: Literal["vector", "raster"]
     # which comparison mode was actually possible given the two input types
-    compare_mode: Literal["geometry+text", "text-only"]
+    compare_mode: Literal["geometry+text", "approx-geometry+text"]
     page_width_a: float
     page_height_a: float
     page_width_b: float
