@@ -6,11 +6,23 @@ engine works on structured entities, never on pixels).
 """
 from __future__ import annotations
 
+import shutil
 import uuid
+from pathlib import Path
 
 import fitz
 import pytesseract
 from PIL import Image
+
+# locate the tesseract binary when it isn't on PATH (default Windows installs)
+if shutil.which("tesseract") is None:
+    for candidate in (
+        Path(r"C:\Program Files\Tesseract-OCR\tesseract.exe"),
+        Path.home() / r"AppData\Local\Programs\Tesseract-OCR\tesseract.exe",
+    ):
+        if candidate.exists():
+            pytesseract.pytesseract.tesseract_cmd = str(candidate)
+            break
 
 from ..config import settings
 from ..models.diff_result import Entity, EntityKind
