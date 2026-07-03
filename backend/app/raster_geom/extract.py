@@ -48,11 +48,14 @@ def extract_geometry_entities(
         ink[r0:r1, c0:c1] = False
 
     min_len = max(5, int(settings.hough_line_length_frac * max(w, h)))
+    # fixed rng: the Hough transform is randomized, and both sides must trace
+    # identical drawing regions into identical segments to match cleanly
     segments = probabilistic_hough_line(
         ink,
         threshold=settings.hough_threshold,
         line_length=min_len,
         line_gap=settings.hough_line_gap,
+        rng=0,
     )
 
     primitives = [
