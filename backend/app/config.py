@@ -38,10 +38,7 @@ class Settings(BaseModel):
     # --- approximate geometry tracing (raster inputs) ---
     trace_dpi: int = 150
     ink_threshold: int = 200          # gray value below which a pixel is "ink"
-    hough_threshold: int = 10
-    hough_line_length_frac: float = 0.01  # min segment length, fraction of max dim
-    hough_line_gap: int = 3
-    trace_join_tol: float = 0.008     # looser endpoint clustering for traced segments
+    min_component_px: int = 30        # drop ink components smaller than this
     min_entity_span: float = 0.015    # drop traced entities smaller than this (bbox diagonal)
     trace_confidence: float = 0.8     # confidence assigned to traced entities
     # traced entities need looser thresholds than exact vector data

@@ -79,20 +79,22 @@ def run_comparison(job_id: str, path_a: Path, path_b: Path) -> CompareResult:
         entities_b = _extract_entities(page_b, type_b, approx)
 
         if approx:
-            text_counts = {
-                "A": sum(1 for e in entities_a if e.kind == EntityKind.TEXT),
-                "B": sum(1 for e in entities_b if e.kind == EntityKind.TEXT),
-            }
-            low, high = min(text_counts.values()), max(text_counts.values())
-            if high > 0 and low < 0.2 * high:
-                sparse = min(text_counts, key=text_counts.get)
-                notes.append(
-                    f"Warning: input {sparse} yielded very few readable text "
-                    f"elements ({low} vs {high}) — likely a low-resolution scan. "
-                    "Text-change results are unreliable; most annotations will "
-                    "appear as added/removed. Provide a higher-resolution scan "
-                    "or a native vector PDF for a meaningful text comparison."
-                )
+            for kind, what in ((EntityKind.TEXT, "readable text elements"),
+                               (EntityKind.GEOMETRY, "distinct drawing structures")):
+                counts = {
+                    "A": sum(1 for e in entities_a if e.kind == kind),
+                    "B": sum(1 for e in entities_b if e.kind == kind),
+                }
+                low, high = min(counts.values()), max(counts.values())
+                if high > 0 and low < 0.2 * high:
+                    sparse = min(counts, key=counts.get)
+                    notes.append(
+                        f"Warning: input {sparse} yielded far fewer {what} "
+                        f"({low} vs {high}) — likely a low-resolution scan. "
+                        "Change results are unreliable; many elements will "
+                        "appear as added/removed. Provide a higher-resolution "
+                        "scan or a native vector PDF for a meaningful comparison."
+                    )
 
         pairs = match_entities(entities_a, entities_b)
         regions = classify_matches(pairs)

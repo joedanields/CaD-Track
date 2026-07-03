@@ -17,9 +17,10 @@ contains **no pixel-comparison algorithm**. Instead it extracts the
   (`page.get_drawings()`) and positioned text spans (`page.get_text("dict")`)
   via PyMuPDF — exact, noise-free.
 - **Raster PDFs / images** (scans, flattened exports): text and annotations
-  recovered with Tesseract OCR (`image_to_data`, per-word bbox + confidence).
-  Pure geometry changes are **not evaluated** for raster inputs — a
-  documented, surfaced limitation rather than a silent wrong answer.
+  recovered with Tesseract OCR (`image_to_data`, per-word bbox + confidence),
+  and drawing geometry recovered **approximately** by tracing the page's ink
+  into connected components (`raster_geom/extract.py`), each becoming a
+  structural entity with a bbox, centroid, and ink-share signature.
 
 All coordinates are normalized to `[0, 1]` against each page's own size, so
 two files with different page dimensions are directly comparable and a global
@@ -58,14 +59,20 @@ flowchart TD
 
 | Input A | Input B | Mode | What is diffed |
 |---|---|---|---|
-| vector | vector | `geometry+text` | grouped geometry entities + text spans |
-| vector | raster | `text-only` | vector side's exact text vs OCR text |
-| raster | raster | `text-only` | OCR text vs OCR text |
+| vector | vector | `geometry+text` | exact grouped geometry entities + text spans |
+| vector | raster | `approx-geometry+text` | traced ink components (both sides) + exact text vs OCR text |
+| raster | raster | `approx-geometry+text` | traced ink components + OCR text on both sides |
 
-When any side is raster, comparing geometry would report everything as
-removed (one side has none), so both sides are reduced to text entities and
-the result carries an explanatory note. If one side yields drastically fewer
-readable words (low-resolution scan), a warning is attached to the result and
+When any side is raster, geometry on **both** sides is traced from the
+rendered page — like for like — so a vector side's exact primitives are never
+compared against a side that has none. Tracing decomposes the page's ink
+(text areas masked out first) into connected components; the labeling is
+deterministic, so identical drawing regions yield identical entities and
+match exactly, while an added or removed structure has no counterpart. Each
+component's signature is its *share* of the page's total ink, which cancels
+systematic line-width differences between a thin vector render and a thick
+scan. If one side yields drastically fewer readable words or distinct
+structures (low-resolution scan), a warning is attached to the result and
 the summary.
 
 ## Diff engine
@@ -117,6 +124,9 @@ removed, amber moved, blue modified.
 
 - Learned symbol spotting (no training data); proximity clustering instead.
 - eDOCr/keras-OCR integration (TensorFlow dependency).
-- Geometry diffing of raster inputs; any pixel/CV-based comparison.
+- Any pixel/CV-based *comparison* (raster geometry is traced into entities
+  and diffed structurally; pixels are never compared against pixels).
+- Sub-component geometry changes fused into one connected structure on a
+  raster page (detected only when they change the component's ink share).
 - Multi-page reorder-aware matching (page 1 vs page 1 only).
 - Auth / multi-user persistence (in-memory job store).

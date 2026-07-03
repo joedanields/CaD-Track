@@ -23,6 +23,9 @@ absdiff, ORB/homography, or any image-alignment step.
 
 - All coordinates normalized to [0,1] per page — never compare raw pixel/pt
   coordinates across documents.
-- Raster inputs are diffed by OCR text only (Tesseract); this is by design.
+- Raster inputs are diffed by OCR text (Tesseract) + approximate geometry:
+  ink traced into connected components (`raster_geom/extract.py`), diffed as
+  entities. When any side is raster, BOTH sides' geometry is traced
+  (like-for-like); never mix exact vector primitives with traced entities.
 - Windows: Tesseract lives at `C:\Program Files\Tesseract-OCR\`;
   `ocr/extract.py` auto-detects it when not on PATH.

@@ -19,8 +19,11 @@ See [docs/architecture.md](docs/architecture.md) for the full design and
 - Accepts PDF (vector or scanned), PNG, JPG — auto-detects vector vs raster.
 - Vector PDFs: exact geometry + text diff (primitives grouped into entities,
   matched by position and shape).
-- Raster inputs: text/annotation diff via OCR, with explicit warnings when a
-  scan is too low-resolution to read reliably.
+- Raster inputs: text/annotation diff via OCR **plus** approximate geometry
+  diff — the drawing's ink is traced into connected structures on both sides
+  and those entities are matched, so added/removed drawing elements are
+  detected even in scans. Explicit warnings when a scan is too
+  low-resolution to compare reliably.
 - Change overlay, side-by-side view, per-region stats table, % area changed.
 - Rule-based natural-language summary (no LLM, fully offline).
 
@@ -72,7 +75,11 @@ pairs with known expected diffs, plus a smoke test on the real sample pair.
 
 ## Limitations (v1)
 
-- Raster inputs are compared by text/annotations only — geometry changes in
-  scans are not detected (by design; no pixel diffing).
+- Raster geometry comparison is approximate (connected ink structures):
+  a change fused into a larger connected structure is only detected when it
+  noticeably alters that structure's ink share. There is still no pixel
+  diffing — traced entities are matched structurally.
+- Low-resolution scans fuse fine detail into blobs; results carry a warning
+  when the two sides' entity yields are badly mismatched.
 - Single page: page 1 of each document is compared.
 - Job store is in-memory; restart clears results.

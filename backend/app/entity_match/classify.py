@@ -15,6 +15,8 @@ def _area(bbox: tuple[float, float, float, float]) -> float:
 def _label(e: Entity) -> str:
     if e.kind == EntityKind.TEXT:
         return f"text: '{e.text}'"
+    if "ink" in e.shape_signature:
+        return "drawing structure (traced)"
     return f"geometry ({e.primitive_count} segment{'s' if e.primitive_count != 1 else ''})"
 
 
