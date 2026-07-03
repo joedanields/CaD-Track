@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CaD-Track — CAD Drawing Diff</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #2f81f7;
+    --added: #2ea043; --removed: #da3633; --moved: #e3b341; --modified: #1f6feb;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  header { padding: 1rem 2rem; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 1rem; }
+  header h1 { margin: 0; font-size: 1.3rem; }
+  header span { color: var(--muted); font-size: .9rem; }
+  main { max-width: 1400px; margin: 0 auto; padding: 1.5rem 2rem; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .uploads { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .dropzone { flex: 1; min-width: 260px; border: 2px dashed var(--border); border-radius: 8px; padding: 1.5rem; text-align: center; color: var(--muted); cursor: pointer; }
+  .dropzone.hasfile { border-color: var(--accent); color: var(--text); }
+  button { background: var(--accent); border: none; color: #fff; padding: .6rem 1.6rem; border-radius: 6px; font-size: 1rem; cursor: pointer; margin-top: 1rem; }
+  button:disabled { opacity: .45; cursor: default; }
+  .tabs { display: flex; gap: .5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .tabs button { margin: 0; padding: .4rem 1rem; background: var(--panel); border: 1px solid var(--border); color: var(--muted); }
+  .tabs button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #viz-img { max-width: 100%; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; }
+  .chip { display: inline-block; padding: .1rem .55rem; border-radius: 10px; font-size: .8rem; color: #fff; }
+  .chip.added { background: var(--added); } .chip.removed { background: var(--removed); }
+  .chip.moved { background: var(--moved); color: #000; } .chip.modified { background: var(--modified); }
+  .statgrid { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .stat { flex: 1; min-width: 130px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: .8rem; text-align: center; }
+  .stat b { display: block; font-size: 1.6rem; }
+  .stat span { color: var(--muted); font-size: .8rem; }
+  #summary-text { line-height: 1.65; }
+  .note { color: var(--moved); font-size: .88rem; margin-top: .6rem; }
+  #status { color: var(--muted); margin-top: .8rem; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>CaD-Track</h1>
+  <span>git-style change tracking for CAD drawings — structured entity diff, no pixel comparison</span>
+</header>
+<main>
+  <section class="card" id="upload-card">
+    <h2>1 · Upload two versions</h2>
+    <div class="uploads">
+      <div class="dropzone" id="drop-a">Drawing A (old / v1)<br><small>PDF, PNG, JPG</small>
+        <input type="file" id="file-a" accept=".pdf,.png,.jpg,.jpeg" hidden></div>
+      <div class="dropzone" id="drop-b">Drawing B (new / v2)<br><small>PDF, PNG, JPG</small>
+        <input type="file" id="file-b" accept=".pdf,.png,.jpg,.jpeg" hidden></div>
+    </div>
+    <button id="compare-btn" disabled>Compare</button>
+    <div id="status"></div>
+  </section>
+
+  <section class="card hidden" id="viz-card">
+    <h2>2 · Visualization</h2>
+    <div class="tabs" id="viz-tabs">
+      <button data-mode="bbox" class="active">Changes overlay</button>
+      <button data-mode="side_by_side">Side by side</button>
+      <button data-mode="original_a">Original A</button>
+      <button data-mode="original_b">Original B</button>
+    </div>
+    <img id="viz-img" alt="diff visualization">
+  </section>
+
+  <section class="card hidden" id="stats-card">
+    <h2>3 · Statistics</h2>
+    <div class="statgrid" id="stat-tiles"></div>
+    <table>
+      <thead><tr><th>Type</th><th>Kind</th><th>Location</th><th>Area %</th><th>Detail</th></tr></thead>
+      <tbody id="region-rows"></tbody>
+    </table>
+  </section>
+
+  <section class="card hidden" id="summary-card">
+    <h2>4 · Change summary</h2>
+    <p id="summary-text"></p>
+    <div id="notes"></div>
+  </section>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>
